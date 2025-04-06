@@ -10,6 +10,7 @@ public class Controller : MonoBehaviour
     [SerializeField] private float  _JumpForce = 5f;
     [SerializeField] private float  _RotSpeed= 600f;
     [SerializeField] private MainCameraController _MMC;
+    private bool isPlayerControl = true;
 
     private Quaternion _requireRotation;
     private Animator _animator;
@@ -38,10 +39,13 @@ public class Controller : MonoBehaviour
     }
     private void Update()
     {
+        PlayerMovement();
+
+        if(!isPlayerControl) return;
+
         _isRun = Input.GetKey(KeyCode.LeftShift);
 
         Falling();
-        PlayerMovement();
         Roll();
         SurfaceCheck();
     }
@@ -104,5 +108,17 @@ public class Controller : MonoBehaviour
    {
     Gizmos.color = Color.yellow;
     Gizmos.DrawSphere(transform.TransformPoint(SurfaceCheckOffset), _SurfaceCheckRadius);
+   }
+
+   public void SetControl(bool isHasContol)
+   {
+    this.isPlayerControl = isHasContol;
+    _characterController.enabled = isHasContol;
+
+    if(!isHasContol)
+    {
+        _animator.SetFloat("movementValue",0f);
+        _requireRotation = transform.rotation;
+    }
    }
 }

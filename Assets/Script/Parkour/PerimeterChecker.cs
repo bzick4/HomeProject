@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PerimeterChecker : MonoBehaviour
@@ -25,7 +23,7 @@ public class PerimeterChecker : MonoBehaviour
         Debug.DrawRay(_heightOrigin, Vector3.down * HeightRayLenght, (_hitData.isHeightFound) ? Color.blue : Color.green);
      }
 
-     return _hitData;
+      return _hitData;
    }
 
 }

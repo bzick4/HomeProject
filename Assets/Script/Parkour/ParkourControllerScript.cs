@@ -1,43 +1,88 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ParkourControllerScript : MonoBehaviour
 {
     private PerimeterChecker _perimeterChecker;
     private Animator _animator;
+    private CharacterController _charactrController;
+    private Controller _controllerScript;
     private bool _isPlayerInAction;
+    private int _randomJump;
+
+    [Header("Parkour Action Area")]
+    [SerializeField] private List<NewParkourAction> _NewParkourActions;
 
 
     private void Awake()
     {
         _perimeterChecker = GetComponent<PerimeterChecker>();
         _animator = GetComponent<Animator>();
+        _charactrController = GetComponent<CharacterController>();
+        _controllerScript = GetComponent<Controller>();
     }
 
     private void Update()
     {
+        JumpRandom();
+       var _hitData = _perimeterChecker.CheckObstacle();
+        
+            
+        
        if(Input.GetKeyDown(KeyCode.Q) && !_isPlayerInAction)
        {
-       var _hitData = _perimeterChecker.CheckObstacle();
-
+    
         if(_hitData.isHitFound)
         {
-            StartCoroutine(PerformParkourAction());
+            Debug.Log(_hitData.HitInfo.transform.name);
+            
+            foreach (var action in _NewParkourActions)
+            {
+                if(action.IsCheckAvailable(_hitData, transform))
+                {
+                    StartCoroutine(PerformParkourAction(action));
+                    break;
+                }
+            }
         }
        }
     }
 
-    private IEnumerator PerformParkourAction()
+    private IEnumerator PerformParkourAction(NewParkourAction action)
     {
         _isPlayerInAction = true;
+        _controllerScript.SetControl(false);
 
-        _animator.CrossFade("JumpUpObstacle", 0.2f);
+        _animator.CrossFade(action.AnimationName, 0.2f);
         yield return null;
 
         var animatorState  = _animator.GetNextAnimatorStateInfo(0);
+        if(!animatorState.IsName(action.AnimationName)) Debug.Log("Anim Name Error");
 
         yield return new WaitForSeconds(animatorState.length);
 
+        _controllerScript.SetControl(true);
         _isPlayerInAction = false;
+    }
+
+    private void JumpRandom()
+    {
+        if(Input.GetKeyDown(KeyCode.F) )
+        {
+        _randomJump = Random.Range(0, 10);
+        _animator.SetInteger("RandomJumpINT", _randomJump);
+        _animator.SetTrigger("RandomJumpTR");
+        Debug.Log(_randomJump);
+        StartCoroutine(ControllOn());
+        }
+        
+    }
+
+    private IEnumerator ControllOn()
+    {
+        _charactrController.enabled = false;
+        yield return new WaitForSeconds(0.4f);
+        _charactrController.enabled = true;
     }
 }
