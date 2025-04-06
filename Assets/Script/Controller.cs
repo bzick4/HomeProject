@@ -1,83 +1,108 @@
 using TMPro.EditorUtilities;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Controller : MonoBehaviour
 {
-    [SerializeField] private float _Speed = 5f, _RunSpeed = 9f, _Acceleration = 10f, _JumpForce = 5f;
-    private Rigidbody _rb;
-    public Animator _anim {get; set;}
+    [Header("Player Movement")]
+    [SerializeField] private float _Speed = 5f;
+    [SerializeField] private float  _RunSpeed = 9f;
+    [SerializeField] private float  _JumpForce = 5f;
+    [SerializeField] private float  _RotSpeed= 600f;
+    [SerializeField] private MainCameraController _MMC;
 
-    private bool isGrounded, isMove;
+    private Quaternion _requireRotation;
+    private Animator _animator;
+
+    [Header("Player collision & gravity")]
+    [SerializeField] private float _SurfaceCheckRadius = 0.1f;
+    [SerializeField] private float _FallingSpeed;
+    [SerializeField] private Vector3 _MoveDir;
+
+    public Vector3 SurfaceCheckOffset;
+    public LayerMask SurfaceLayer;
+
+    private CharacterController _characterController;
+    private float _movementAmount;
     private float _currentSpeed;
+    private bool _isRun;
+    private bool _isOnSurface;
+    
 
-    void Start()
+
+
+    private void Awake()
     {
-        _rb = GetComponent<Rigidbody>();
-        _anim = GetComponentInChildren<Animator>();
-        _anim.applyRootMotion=true;
-
-        _rb.freezeRotation = true;
-        _currentSpeed = _Speed;
-        isMove = true;
+        _animator = GetComponent<Animator>();
+        _characterController = GetComponent<CharacterController>();
     }
-
-    void Update()
+    private void Update()
     {
-        Run();
+        _isRun = Input.GetKey(KeyCode.LeftShift);
+
+        Falling();
+        PlayerMovement();
         Roll();
-
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded) Jump();
+        SurfaceCheck();
     }
 
-    private void  FixedUpdate() 
+    private void PlayerMovement()
     {
-        if(isMove) Move();
-    }
+        float _horiz = Input.GetAxis("Horizontal");
+        float _vert = Input.GetAxis("Vertical");
 
-    private void Move()
-    {
-        float moveX = Input.GetAxis("Horizontal"); // A/D
-        float moveZ = Input.GetAxis("Vertical");   // W/S
+        _currentSpeed = _isRun ? _RunSpeed : _Speed;
 
-        Vector3 moveDirection = new Vector3(moveX, 0, moveZ).normalized;
-        Vector3 targetVelocity = moveDirection * _currentSpeed;
-        _rb.velocity = Vector3.Lerp(_rb.velocity, new Vector3(targetVelocity.x, _rb.velocity.y, targetVelocity.z), _Acceleration * Time.deltaTime);
+        _movementAmount = Mathf.Clamp01(Mathf.Abs(_horiz) + Mathf.Abs(_vert));
 
-        _anim.SetFloat("Velocity", _rb.velocity.magnitude);
-         
+        var movementInput = (new Vector3(_horiz, 0, _vert)).normalized;
+
+        var moveDirection = _MMC.FlatRotation * movementInput;
+
+        _characterController.Move(moveDirection * _currentSpeed * Time.deltaTime);
+
+        if(_movementAmount > 0)
+        {
+        _requireRotation = Quaternion.LookRotation(moveDirection);
+        }
+
+        moveDirection = _MoveDir;
+
+        _animator.SetFloat("movementValue",_isRun ? 2f : _movementAmount, 0.2f, Time.deltaTime);
+       
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, _requireRotation, _RotSpeed * Time.deltaTime);
+  
     }
 
     private void Roll()
     {
-        if(Input.GetKeyDown(KeyCode.C))
+        if(Input.GetKeyDown(KeyCode.C) && _movementAmount > 0f)
         {
-            _anim.SetTrigger("Roll");
+            _animator.SetTrigger("Roll");
         }
-    }
 
-    private void Jump()
+    }
+    
+    private void SurfaceCheck()
     {
-        isMove = false;
-        _rb.velocity = new Vector3(_rb.velocity.x, _JumpForce, _rb.velocity.z);
-        isGrounded = false;
+        _isOnSurface = Physics.CheckSphere(transform.TransformPoint(SurfaceCheckOffset), _SurfaceCheckRadius, SurfaceLayer);
     }
 
-    private void Run()
+    private void Falling()
     {
-         if (Input.GetKeyDown(KeyCode.LeftShift) && isMove || Input.GetKeyDown(KeyCode.LeftShift) && !isGrounded)
-        {
-            _currentSpeed = _RunSpeed;
-            _anim.SetBool("isRun", true);
-            Debug.Log($"{_currentSpeed}");
-            
-        }
-        else if (Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            _currentSpeed = _Speed;
-            _anim.SetBool("isRun", false);
-        }
+        if(_isOnSurface) _FallingSpeed = -0.5f;
+        else _FallingSpeed += Physics.gravity.y * Time.deltaTime;
+       
+        var velocity = _MoveDir * _Speed;
+        velocity.y = _FallingSpeed;
+
+        //if(_FallingSpeed < -0.5f) _animator.SetTarget();
+
     }
 
-
-
+   private void OnDrawGizmosSelected() 
+   {
+    Gizmos.color = Color.yellow;
+    Gizmos.DrawSphere(transform.TransformPoint(SurfaceCheckOffset), _SurfaceCheckRadius);
+   }
 }
