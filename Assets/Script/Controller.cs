@@ -8,7 +8,7 @@ public class Controller : MonoBehaviour
     [SerializeField] private float _Speed = 5f;
     [SerializeField] private float  _RunSpeed = 9f;
     [SerializeField] private float  _JumpForce = 5f;
-    [SerializeField] private float  _RotSpeed= 600f;
+    [SerializeField] private float  _RotSpeed = 600f;
     [SerializeField] private MainCameraController _MMC;
     private bool isPlayerControl = true;
 
@@ -121,4 +121,7 @@ public class Controller : MonoBehaviour
         _requireRotation = transform.rotation;
     }
    }
+
+   public float RotSpeed => _RotSpeed;
+
 }

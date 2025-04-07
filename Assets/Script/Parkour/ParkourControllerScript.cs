@@ -25,10 +25,8 @@ public class ParkourControllerScript : MonoBehaviour
 
     private void Update()
     {
-        JumpRandom();
+        //JumpRandom();
        var _hitData = _perimeterChecker.CheckObstacle();
-        
-            
         
        if(Input.GetKeyDown(KeyCode.Q) && !_isPlayerInAction)
        {
@@ -62,6 +60,29 @@ public class ParkourControllerScript : MonoBehaviour
 
         yield return new WaitForSeconds(animatorState.length);
 
+        float timeCounter = 0.1f;
+
+        while(timeCounter <= animatorState.length)
+        {
+            timeCounter += Time.deltaTime;
+
+            if(action.IsLookAtObstacle)
+            {
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, action.RequiredRotation, _controllerScript.RotSpeed * Time.deltaTime);
+            }
+
+            if(action.IsAllowTargetMatching)
+            {
+                CompareTarget(action);
+            }
+
+
+
+            yield return null;
+        }
+
+
+
         _controllerScript.SetControl(true);
         _isPlayerInAction = false;
     }
@@ -84,5 +105,12 @@ public class ParkourControllerScript : MonoBehaviour
         _charactrController.enabled = false;
         yield return new WaitForSeconds(0.4f);
         _charactrController.enabled = true;
+    }
+
+
+    private void CompareTarget(NewParkourAction action)
+    {
+        _animator.MatchTarget(action.ComparePosition, transform.rotation, action.AvatarTarget, 
+        new MatchTargetWeightMask(new Vector3(0,1,0), 0),action.CompareStartTime, action.CompareEndTime);
     }
 }
