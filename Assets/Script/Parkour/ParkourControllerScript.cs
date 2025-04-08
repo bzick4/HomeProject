@@ -25,8 +25,16 @@ public class ParkourControllerScript : MonoBehaviour
 
     private void Update()
     {
-        //JumpRandom();
-       var _hitData = _perimeterChecker.CheckObstacle();
+        HitDataAction();
+        Roll();
+        Slide();
+        JumpRandom();
+       
+    }
+
+    private void HitDataAction()
+    {
+        var _hitData = _perimeterChecker.CheckObstacle();
         
        if(Input.GetKeyDown(KeyCode.Q) && !_isPlayerInAction)
        {
@@ -60,7 +68,7 @@ public class ParkourControllerScript : MonoBehaviour
 
         yield return new WaitForSeconds(animatorState.length);
 
-        float timeCounter = 0.1f;
+        float timeCounter = 1f;
 
         while(timeCounter <= animatorState.length)
         {
@@ -76,12 +84,8 @@ public class ParkourControllerScript : MonoBehaviour
                 CompareTarget(action);
             }
 
-
-
             yield return null;
         }
-
-
 
         _controllerScript.SetControl(true);
         _isPlayerInAction = false;
@@ -91,14 +95,32 @@ public class ParkourControllerScript : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.F) )
         {
-        _randomJump = Random.Range(0, 10);
+        _randomJump = Random.Range(0, 4);
         _animator.SetInteger("RandomJumpINT", _randomJump);
         _animator.SetTrigger("RandomJumpTR");
         Debug.Log(_randomJump);
         StartCoroutine(ControllOn());
         }
-        
     }
+
+    private void Roll()
+    {
+        if(Input.GetKeyDown(KeyCode.C) && _controllerScript.MovementAmount > 0f)
+        {
+            _animator.SetTrigger("Roll");
+            StartCoroutine(ControllOn());
+        }
+    }
+
+    private void Slide()
+    {
+        if(Input.GetKeyDown(KeyCode.X) && _controllerScript.MovementAmount > 0f)
+        {
+            _animator.SetTrigger("Slide");
+            StartCoroutine(ControllOn());
+        }
+    }
+
 
     private IEnumerator ControllOn()
     {
@@ -110,7 +132,7 @@ public class ParkourControllerScript : MonoBehaviour
 
     private void CompareTarget(NewParkourAction action)
     {
-        _animator.MatchTarget(action.ComparePosition, transform.rotation, action.AvatarTarget, 
-        new MatchTargetWeightMask(new Vector3(0,1,0), 0),action.CompareStartTime, action.CompareEndTime);
+        _animator.MatchTarget(action.ComparePosition, transform.rotation, action.AvatarTarget,
+        new MatchTargetWeightMask(action.ComparePositionWeight, 0),action.CompareStartTime, action.CompareEndTime);
     }
 }

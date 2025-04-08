@@ -17,6 +17,7 @@ public class NewParkourAction : ScriptableObject
     [SerializeField] AvatarTarget _AvatarTarget;
     [SerializeField] private float _CompareStartTime;
     [SerializeField] private float _CompareEndTime;
+    [SerializeField] private Vector3 _ComparePositionWeight = new Vector3(0,1,0);
     public Vector3 ComparePosition {get; set;}
     
     public bool IsCheckAvailable(ObstacleInfo HitData, Transform player)
@@ -38,5 +39,6 @@ public class NewParkourAction : ScriptableObject
     public AvatarTarget AvatarTarget => _AvatarTarget;
     public float CompareStartTime => _CompareStartTime;
     public float CompareEndTime => _CompareEndTime;
+    public Vector3 ComparePositionWeight => _ComparePositionWeight;
 
 }

@@ -24,7 +24,7 @@ public class Controller : MonoBehaviour
     public LayerMask SurfaceLayer;
 
     private CharacterController _characterController;
-    private float _movementAmount;
+    public float MovementAmount {get; set;}
     private float _currentSpeed;
     private bool _isRun;
     private bool _isOnSurface;
@@ -46,7 +46,6 @@ public class Controller : MonoBehaviour
         _isRun = Input.GetKey(KeyCode.LeftShift);
 
         Falling();
-        Roll();
         SurfaceCheck();
     }
 
@@ -57,7 +56,7 @@ public class Controller : MonoBehaviour
 
         _currentSpeed = _isRun ? _RunSpeed : _Speed;
 
-        _movementAmount = Mathf.Clamp01(Mathf.Abs(_horiz) + Mathf.Abs(_vert));
+        MovementAmount = Mathf.Clamp01(Mathf.Abs(_horiz) + Mathf.Abs(_vert));
 
         var movementInput = (new Vector3(_horiz, 0, _vert)).normalized;
 
@@ -65,27 +64,20 @@ public class Controller : MonoBehaviour
 
         _characterController.Move(moveDirection * _currentSpeed * Time.deltaTime);
 
-        if(_movementAmount > 0)
+        if(MovementAmount > 0)
         {
         _requireRotation = Quaternion.LookRotation(moveDirection);
         }
 
         moveDirection = _MoveDir;
 
-        _animator.SetFloat("movementValue",_isRun ? 2f : _movementAmount, 0.2f, Time.deltaTime);
+        _animator.SetFloat("movementValue",_isRun ? 2f : MovementAmount, 0.2f, Time.deltaTime);
        
         transform.rotation = Quaternion.RotateTowards(transform.rotation, _requireRotation, _RotSpeed * Time.deltaTime);
   
     }
 
-    private void Roll()
-    {
-        if(Input.GetKeyDown(KeyCode.C) && _movementAmount > 0f)
-        {
-            _animator.SetTrigger("Roll");
-        }
-
-    }
+    
     
     private void SurfaceCheck()
     {
