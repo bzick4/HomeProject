@@ -10,6 +10,7 @@ public class Controller : MonoBehaviour
     [SerializeField] private float  _JumpForce = 5f;
     [SerializeField] private float  _RotSpeed = 600f;
     [SerializeField] private MainCameraController _MMC;
+    private PerimeterChecker _perimeterChecker;
     private bool isPlayerControl = true;
 
     private Quaternion _requireRotation;
@@ -28,6 +29,7 @@ public class Controller : MonoBehaviour
     private float _currentSpeed;
     private bool _isRun;
     private bool _isOnSurface;
+    public bool isPlayerOnLedge {get; set;}
     
 
 
@@ -36,6 +38,7 @@ public class Controller : MonoBehaviour
     {
         _animator = GetComponent<Animator>();
         _characterController = GetComponent<CharacterController>();
+        _perimeterChecker  = GetComponent<PerimeterChecker>();
     }
     private void Update()
     {
@@ -69,7 +72,7 @@ public class Controller : MonoBehaviour
         _requireRotation = Quaternion.LookRotation(moveDirection);
         }
 
-        moveDirection = _MoveDir;
+        _MoveDir = moveDirection;
 
         _animator.SetFloat("movementValue",_isRun ? 2f : MovementAmount, 0.2f, Time.deltaTime);
        
@@ -86,7 +89,16 @@ public class Controller : MonoBehaviour
 
     private void Falling()
     {
-        if(_isOnSurface) _FallingSpeed = -0.5f;
+        if(_isOnSurface)
+        {
+            _FallingSpeed = -0.5f;
+
+            isPlayerOnLedge = _perimeterChecker.CheckLedge(_MoveDir);
+            if(isPlayerOnLedge)
+            {
+                Debug.Log("");
+            }
+        }
         else _FallingSpeed += Physics.gravity.y * Time.deltaTime;
        
         var velocity = _MoveDir * _Speed;
