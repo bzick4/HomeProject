@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c56f962358a864e10b6060fe128a69b7
+guid: 9280a0de37c88488abfb6b8f0a98577b
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -33,26 +33,26 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: mixamo.com
+      name: WallJump
       takeName: mixamo.com
       internalID: -203655887218126122
-      firstFrame: 2
-      lastFrame: 32
+      firstFrame: 7
+      lastFrame: 38
       wrapMode: 0
       orientationOffsetY: 0
-      level: 0
+      level: -1.53
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
       keepOriginalOrientation: 1
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
-      heightFromFeet: 0
+      keepOriginalPositionY: 0
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 1
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []

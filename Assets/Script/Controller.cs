@@ -7,12 +7,10 @@ public class Controller : MonoBehaviour
     [Header("Player Movement")]
     [SerializeField] private float _Speed = 5f;
     [SerializeField] private float  _RunSpeed = 9f;
-    [SerializeField] private float  _JumpForce = 5f;
     [SerializeField] private float  _RotSpeed = 600f;
-    [SerializeField] private MainCameraController _MMC;
+    [SerializeField] private Transform cameraTransform;
     private PerimeterChecker _perimeterChecker;
     private bool isPlayerControl = true;
-
     private Quaternion _requireRotation;
     private Animator _animator;
 
@@ -20,7 +18,10 @@ public class Controller : MonoBehaviour
     [SerializeField] private float _SurfaceCheckRadius = 0.1f;
     [SerializeField] private float _FallingSpeed;
     [SerializeField] private Vector3 _MoveDir;
-
+    [SerializeField] private Vector3 _RequiredMoveDir;
+     
+    
+    private Vector3 velocity;
     public Vector3 SurfaceCheckOffset;
     public LayerMask SurfaceLayer;
 
@@ -28,8 +29,9 @@ public class Controller : MonoBehaviour
     public float MovementAmount {get; set;}
     private float _currentSpeed;
     private bool _isRun;
-    private bool _isOnSurface;
+    public bool _isOnSurface {get; set;}
     public bool isPlayerOnLedge {get; set;}
+    public LedgeInfo LedgeInfo {get; set;}
     
 
 
@@ -43,13 +45,13 @@ public class Controller : MonoBehaviour
     private void Update()
     {
         PlayerMovement();
-
+        LedgeCheck();
         if(!isPlayerControl) return;
 
         _isRun = Input.GetKey(KeyCode.LeftShift);
-
-        Falling();
+        
         SurfaceCheck();
+        _animator.SetBool("isOnSurface", _isOnSurface);
     }
 
     private void PlayerMovement()
@@ -61,51 +63,68 @@ public class Controller : MonoBehaviour
 
         MovementAmount = Mathf.Clamp01(Mathf.Abs(_horiz) + Mathf.Abs(_vert));
 
-        var movementInput = (new Vector3(_horiz, 0, _vert)).normalized;
+        var movementInput = new Vector3(_horiz, 0, _vert).normalized;
+        _RequiredMoveDir =  Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * movementInput;
 
-        var moveDirection = _MMC.FlatRotation * movementInput;
+        _characterController.Move(velocity * Time.deltaTime);
 
-        _characterController.Move(moveDirection * _currentSpeed * Time.deltaTime);
-
-        if(MovementAmount > 0)
+        if(MovementAmount > 0 && _MoveDir.magnitude > 0.2f)
         {
-        _requireRotation = Quaternion.LookRotation(moveDirection);
+           _requireRotation = Quaternion.LookRotation(_RequiredMoveDir);
+           transform.rotation = _requireRotation;
         }
-
-        _MoveDir = moveDirection;
-
-        _animator.SetFloat("movementValue",_isRun ? 2f : MovementAmount, 0.2f, Time.deltaTime);
        
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, _requireRotation, _RotSpeed * Time.deltaTime);
-  
+        _MoveDir = _RequiredMoveDir;
+
+        _requireRotation = Quaternion.RotateTowards(transform.rotation, _requireRotation, _RotSpeed * Time.deltaTime);
     }
 
-    
     
     private void SurfaceCheck()
     {
         _isOnSurface = Physics.CheckSphere(transform.TransformPoint(SurfaceCheckOffset), _SurfaceCheckRadius, SurfaceLayer);
     }
 
-    private void Falling()
+    private void PlayerLedgeMovement()
     {
+        float angle  = Vector3.Angle(LedgeInfo.SurfaceHit.normal, _RequiredMoveDir);
+        if(angle < 90)
+        {
+            velocity = Vector3.zero;
+            _MoveDir = Vector3.zero;
+        }
+    }
+
+    
+    private void LedgeCheck()
+    {
+        if(!isPlayerControl) return;
+
+        velocity = Vector3.zero;
+
         if(_isOnSurface)
         {
             _FallingSpeed = -0.5f;
+            velocity = _MoveDir * _currentSpeed;
+            
+            isPlayerOnLedge = _perimeterChecker.CheckLedge(_MoveDir, out LedgeInfo ledgeInfo);
 
-            isPlayerOnLedge = _perimeterChecker.CheckLedge(_MoveDir);
             if(isPlayerOnLedge)
             {
-                Debug.Log("");
+                LedgeInfo = ledgeInfo;
+                PlayerLedgeMovement();
+                Debug.Log("player on ledge");
             }
+            _animator.SetFloat("movementValue",_isRun ? 2f : velocity.magnitude / _currentSpeed, 0.2f, Time.deltaTime);
         }
-        else _FallingSpeed += Physics.gravity.y * Time.deltaTime;
-       
-        var velocity = _MoveDir * _Speed;
+        else 
+        {
+            _FallingSpeed += Physics.gravity.y * Time.deltaTime;
+            velocity = transform.forward * _Speed / 2;
+        }
+
         velocity.y = _FallingSpeed;
-
-        //if(_FallingSpeed < -0.5f) _animator.SetTarget();
-
+        
     }
 
    private void OnDrawGizmosSelected() 
@@ -126,6 +145,13 @@ public class Controller : MonoBehaviour
     }
    }
 
+
+
    public float RotSpeed => _RotSpeed;
+   public bool IsHasPlayerContol
+   {
+    get => isPlayerControl;
+    set => isPlayerControl = value;
+   }
 
 }

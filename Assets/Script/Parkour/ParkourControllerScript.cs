@@ -10,6 +10,11 @@ public class ParkourControllerScript : MonoBehaviour
     private Controller _controllerScript;
     private bool _isPlayerInAction;
     private int _randomJump;
+    [SerializeField] private NewParkourAction _JumpDownAction;
+    [SerializeField] private NewParkourAction _Slide;
+    [SerializeField] private NewParkourAction _Roll;
+ 
+    private float _autoJumpHeightLimit = 3;
 
     [Header("Parkour Action Area")]
     [SerializeField] private List<NewParkourAction> _NewParkourActions;
@@ -26,8 +31,7 @@ public class ParkourControllerScript : MonoBehaviour
     private void Update()
     {
         HitDataAction();
-        Roll();
-        Slide();
+        SlideAndRoll();
         JumpRandom();
        
     }
@@ -36,9 +40,8 @@ public class ParkourControllerScript : MonoBehaviour
     {
         var _hitData = _perimeterChecker.CheckObstacle();
         
-       if(Input.GetKeyDown(KeyCode.Q) && !_isPlayerInAction)
+       if(Input.GetKeyDown(KeyCode.Space) && !_isPlayerInAction)
        {
-    
         if(_hitData.isHitFound)
         {
             Debug.Log(_hitData.HitInfo.transform.name);
@@ -53,6 +56,20 @@ public class ParkourControllerScript : MonoBehaviour
             }
         }
        }
+
+       if(_controllerScript.isPlayerOnLedge && !_isPlayerInAction && !_hitData.isHitFound)
+       {
+        bool isCanJump = true;
+
+        if(_controllerScript.LedgeInfo.Height > _autoJumpHeightLimit && !Input.GetKeyDown(KeyCode.Space)) isCanJump = false;
+
+        if(isCanJump && _controllerScript.LedgeInfo.Angle <=90)
+        {
+          _controllerScript.isPlayerOnLedge = false;
+          StartCoroutine(PerformParkourAction(_JumpDownAction));
+        }
+       }
+
     }
 
     private IEnumerator PerformParkourAction(NewParkourAction action)
@@ -65,6 +82,8 @@ public class ParkourControllerScript : MonoBehaviour
 
         var animatorState  = _animator.GetNextAnimatorStateInfo(0);
         if(!animatorState.IsName(action.AnimationName)) Debug.Log("Anim Name Error");
+        
+
 
         yield return new WaitForSeconds(animatorState.length);
 
@@ -89,7 +108,7 @@ public class ParkourControllerScript : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(action.ParkouaActionDelay);
+        yield return new WaitForSeconds(action.ParkourActionDelay);
 
         _controllerScript.SetControl(true);
         _isPlayerInAction = false;
@@ -97,33 +116,32 @@ public class ParkourControllerScript : MonoBehaviour
 
     private void JumpRandom()
     {
-        if(Input.GetKeyDown(KeyCode.F) )
+        if(Input.GetKeyDown(KeyCode.E) && !_isPlayerInAction && _controllerScript.MovementAmount > 0f && _controllerScript._isOnSurface)
         {
-        _randomJump = Random.Range(0, 4);
+            _randomJump = Random.Range(0,4);
         _animator.SetInteger("RandomJumpINT", _randomJump);
         _animator.SetTrigger("RandomJumpTR");
         Debug.Log(_randomJump);
+       
+    
+        //StartCoroutine(PerformParkourAction(_JumpDownAction));
         StartCoroutine(ControllOn());
         }
     }
 
-    private void Roll()
+    private void SlideAndRoll()
     {
-        if(Input.GetKeyDown(KeyCode.C) && _controllerScript.MovementAmount > 0f)
+        if(Input.GetKeyDown(KeyCode.Space) && !_isPlayerInAction && _controllerScript.MovementAmount > 0f && _controllerScript._isOnSurface)
         {
-            _animator.SetTrigger("Roll");
-            StartCoroutine(ControllOn());
+            StartCoroutine(PerformParkourAction(_Roll));
+        }
+
+        if(Input.GetKeyDown(KeyCode.Q) && !_isPlayerInAction && _controllerScript.MovementAmount > 0f && _controllerScript._isOnSurface)
+        {
+            StartCoroutine(PerformParkourAction(_Slide));
         }
     }
 
-    private void Slide()
-    {
-        if(Input.GetKeyDown(KeyCode.X) && _controllerScript.MovementAmount > 0f)
-        {
-            _animator.SetTrigger("Slide");
-            StartCoroutine(ControllOn());
-        }
-    }
 
 
     private IEnumerator ControllOn()
