@@ -13,6 +13,7 @@ public class ParkourControllerScript : MonoBehaviour
     [SerializeField] private NewParkourAction _JumpDownAction;
     [SerializeField] private NewParkourAction _Slide;
     [SerializeField] private NewParkourAction _Roll;
+    [SerializeField] private NewParkourAction _Fall;
  
     private float _autoJumpHeightLimit = 3;
 
@@ -33,6 +34,7 @@ public class ParkourControllerScript : MonoBehaviour
         HitDataAction();
         SlideAndRoll();
         JumpRandom();
+        Fall();
        
     }
 
@@ -103,7 +105,7 @@ public class ParkourControllerScript : MonoBehaviour
                 CompareTarget(action);
             }
 
-            if(_animator.IsInTransition(0) && timeCounter >0.5f) break;
+            if(_animator.IsInTransition(0) && timeCounter > 0.5f) break;
 
             yield return null;
         }
@@ -118,14 +120,17 @@ public class ParkourControllerScript : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.E) && !_isPlayerInAction && _controllerScript.MovementAmount > 0f && _controllerScript._isOnSurface)
         {
+            _controllerScript._isOnSurface = false;
             _randomJump = Random.Range(0,4);
         _animator.SetInteger("RandomJumpINT", _randomJump);
         _animator.SetTrigger("RandomJumpTR");
         Debug.Log(_randomJump);
+        
        
     
         //StartCoroutine(PerformParkourAction(_JumpDownAction));
         StartCoroutine(ControllOn());
+        //_controllerScript._isOnSurface = true;
         }
     }
 
@@ -142,6 +147,27 @@ public class ParkourControllerScript : MonoBehaviour
         }
     }
 
+private void Fall()
+{
+    if(_charactrController.velocity.y < -1f) 
+    {
+        _controllerScript._isOnSurface = false;
+        //_animator.SetBool("isFall", true);
+         StartCoroutine(PerformParkourAction(_Fall));
+    }
+
+    if( _charactrController.velocity.y > -1f && _controllerScript._isOnSurface == true)
+     {
+      _animator.SetBool("isFall", false);
+      _controllerScript._isOnSurface = true;
+     }
+
+
+    //else _controllerScript._isOnSurface = true;
+
+    Debug.Log($"Falling speed {_charactrController.velocity.y}");
+
+}
 
 
     private IEnumerator ControllOn()

@@ -21,7 +21,7 @@ public class Controller : MonoBehaviour
     [SerializeField] private Vector3 _RequiredMoveDir;
      
     
-    private Vector3 velocity;
+    private Vector3 _velocity;
     public Vector3 SurfaceCheckOffset;
     public LayerMask SurfaceLayer;
 
@@ -66,7 +66,7 @@ public class Controller : MonoBehaviour
         var movementInput = new Vector3(_horiz, 0, _vert).normalized;
         _RequiredMoveDir =  Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * movementInput;
 
-        _characterController.Move(velocity * Time.deltaTime);
+        _characterController.Move(_velocity * Time.deltaTime);
 
         if(MovementAmount > 0 && _MoveDir.magnitude > 0.2f)
         {
@@ -90,7 +90,7 @@ public class Controller : MonoBehaviour
         float angle  = Vector3.Angle(LedgeInfo.SurfaceHit.normal, _RequiredMoveDir);
         if(angle < 90)
         {
-            velocity = Vector3.zero;
+            _velocity = Vector3.zero;
             _MoveDir = Vector3.zero;
         }
     }
@@ -100,12 +100,12 @@ public class Controller : MonoBehaviour
     {
         if(!isPlayerControl) return;
 
-        velocity = Vector3.zero;
+        _velocity = Vector3.zero;
 
         if(_isOnSurface)
         {
             _FallingSpeed = -0.5f;
-            velocity = _MoveDir * _currentSpeed;
+            _velocity = _MoveDir * _currentSpeed;
             
             isPlayerOnLedge = _perimeterChecker.CheckLedge(_MoveDir, out LedgeInfo ledgeInfo);
 
@@ -115,16 +115,17 @@ public class Controller : MonoBehaviour
                 PlayerLedgeMovement();
                 Debug.Log("player on ledge");
             }
-            _animator.SetFloat("movementValue",_isRun ? 2f : velocity.magnitude / _currentSpeed, 0.2f, Time.deltaTime);
+            _animator.SetFloat("movementValue",_isRun ? 2f : _velocity.magnitude / _currentSpeed, 0.2f, Time.deltaTime);
         }
         else 
         {
             _FallingSpeed += Physics.gravity.y * Time.deltaTime;
-            velocity = transform.forward * _Speed / 2;
+            _velocity = transform.forward * _Speed / 2;
         }
 
-        velocity.y = _FallingSpeed;
-        
+        _velocity.y = _FallingSpeed;
+    
+
     }
 
    private void OnDrawGizmosSelected() 
@@ -148,10 +149,12 @@ public class Controller : MonoBehaviour
 
 
    public float RotSpeed => _RotSpeed;
+   public float FallingSpeed => _FallingSpeed;
    public bool IsHasPlayerContol
    {
     get => isPlayerControl;
     set => isPlayerControl = value;
    }
+   public Vector3 Velocity => _velocity;
 
 }
