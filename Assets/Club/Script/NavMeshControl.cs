@@ -33,7 +33,6 @@ public class NavMeshControl : MonoBehaviour
     {
         if (!_isWaiting && !_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
         {
-        //  if(_DanceIndex.Contains(_currentPoint) && IsAgentInDance())
            if(IsAgentInDance())
            {
             StartCoroutine(StartDance());

@@ -49,16 +49,11 @@ public class Pause : MonoBehaviour
             agent.enabled = false;
         }
 
-        // Находим все компоненты NavMeshControl на сцене
         NavMeshControl[] allControls = FindObjectsOfType<NavMeshControl>();
-
-        // Проходим по каждому и отключаем
-        foreach (NavMeshControl ctrl in allControls)
+        foreach (NavMeshControl navMeshControl in allControls)
         {
-            ctrl.enabled = false;
+            navMeshControl.enabled = false;
         }
-
-        Debug.Log($"Отключено {allAgent.Length} скриптов NavMeshControl");
     }
 
      void PauseOff()
@@ -75,16 +70,11 @@ public class Pause : MonoBehaviour
             agent.enabled = true;
         }
 
-        // Находим все компоненты NavMeshControl на сцене
         NavMeshControl[] allControls = FindObjectsOfType<NavMeshControl>();
-
-        // Проходим по каждому и отключаем
-        foreach (NavMeshControl ctrl in allControls)
+        foreach (NavMeshControl navMeshControl in allControls)
         {
-            ctrl.enabled = true;
+            navMeshControl.enabled = true;
         }
-
-        Debug.Log($"Отключено {allControls.Length} скриптов NavMeshControl");
     }
 
 
